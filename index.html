@@ -1,15 +1,442 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Hi Bro</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    /* ── Google Font ── */
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f0ede8;
+      --card:      #ffffff;
+      --ink:       #1a1714;
+      --muted:     #7a746e;
+      --accent:    #c8502a;
+      --accent-dk: #a83f1f;
+      --border:    #ddd8d2;
+      --shadow:    0 8px 40px rgba(0,0,0,.10);
+      --radius:    14px;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg);
+      /* Subtle grain texture */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      font-family: 'DM Sans', sans-serif;
+      padding: 24px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 420px;
+      padding: 48px 44px 44px;
+      animation: rise .45s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    /* ── Header ── */
+    .card-header { margin-bottom: 36px; }
+
+    .logo {
+      width: 42px; height: 42px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .logo svg { width: 22px; height: 22px; fill: #fff; }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.85rem;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .subtitle { font-size: .875rem; color: var(--muted); }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .input-wrap { position: relative; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      color: var(--ink);
+      background: #faf9f7;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,80,42,.12);
+      background: #fff;
+    }
+    /* red border on validation error */
+    input.invalid {
+      border-color: #d94f3d;
+      box-shadow: 0 0 0 3px rgba(217,79,61,.12);
+    }
+
+    /* password field needs room for the toggle button */
+    .input-wrap input[type="password"],
+    .input-wrap input[type="text"] { padding-right: 46px; }
+
+    /* ── Show / Hide password toggle ── */
+    .toggle-pw {
+      position: absolute;
+      right: 13px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+      display: flex; align-items: center;
+      transition: color .15s;
+    }
+    .toggle-pw:hover { color: var(--ink); }
+    .toggle-pw svg { width: 18px; height: 18px; }
+
+    /* ── Field-level error messages ── */
+    .field-error {
+      font-size: .78rem;
+      color: #d94f3d;
+      margin-top: 5px;
+      min-height: 1em;       /* keeps layout stable */
+      display: none;         /* shown via JS */
+    }
+
+    /* ── Login error banner ── */
+    #login-error {
+      display: none;         /* shown via JS */
+      background: #fdf0ee;
+      border: 1.5px solid #f0b8b0;
+      color: #9b2c1a;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: .875rem;
+      margin-bottom: 20px;
+      animation: shake .35s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    /* ── Submit button ── */
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 3px 12px rgba(200,80,42,.30);
+    }
+    .btn-login:hover  { background: var(--accent-dk); box-shadow: 0 4px 18px rgba(200,80,42,.40); }
+    .btn-login:active { transform: scale(.98); }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .card { padding: 36px 28px 32px; }
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Hi Madam Avre </h1>
-     <h1>Hi This is my first website hosting on the internet ( for free 😄) </h1>
-    <button onclick="window.location.href='https://m.media-amazon.com/images/I/61j7gmM7LQL._SL1119_.jpg'">Click Here mamma</button>
- 
+  <div class="card" role="main">
 
+    <!-- Card header -->
+    <div class="card-header">
+      <div class="logo" aria-hidden="true">
+        <!-- Simple lock icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/>
+        </svg>
+      </div>
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in to continue to your account.</p>
+    </div>
+
+    <!-- ───────────────────────────────────────────
+         LOGIN FORM
+    ─────────────────────────────────────────── -->
+    <div id="login-error" role="alert" aria-live="polite">
+      <!-- Error message shown here when credentials are wrong -->
+    </div>
+
+    <div id="login-form">
+
+      <!-- ── Email / Username field ── -->
+      <div class="field">
+        <label for="username">Email or Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="you@example.com"
+          autocomplete="username"
+          aria-describedby="username-error"
+        />
+        <p class="field-error" id="username-error"></p>
+      </div>
+
+      <!-- ── Password field ── -->
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <input
+            type="password"
+            id="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            aria-describedby="password-error"
+          />
+          <!-- Show / hide password toggle -->
+          <button
+            class="toggle-pw"
+            type="button"
+            id="toggle-pw-btn"
+            aria-label="Show password"
+            title="Show / hide password"
+          >
+            <!-- Eye icon (shown when password is hidden) -->
+            <svg id="icon-eye" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <!-- Eye-off icon (shown when password is visible) -->
+            <svg id="icon-eye-off" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="display:none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <p class="field-error" id="password-error"></p>
+      </div>
+
+      <!-- ── Login button ── -->
+      <button class="btn-login" id="login-btn" type="button">
+        Sign In
+      </button>
+
+    </div>
+    <!-- end #login-form -->
+
+  </div><!-- end .card -->
+
+
+  <script>
+    /* ============================================================
+       CONFIGURATION — Edit these three values before deploying
+    ============================================================ */
+
+    // ✏️  1. CHANGE USERNAME — replace with your desired username or email
+    const VALID_USERNAME = "admin";
+
+    // ✏️  2. CHANGE PASSWORD — replace with your desired password
+    const VALID_PASSWORD = "password123";
+
+    // ✏️  3. INSERT YOUR REDIRECT LINK — the page to open after successful login
+    const REDIRECT_URL = "https://www.example.com";
+
+    /* ============================================================
+       DOM REFERENCES
+    ============================================================ */
+    const usernameInput  = document.getElementById("username");
+    const passwordInput  = document.getElementById("password");
+    const loginBtn       = document.getElementById("login-btn");
+    const loginError     = document.getElementById("login-error");
+    const usernameError  = document.getElementById("username-error");
+    const passwordError  = document.getElementById("password-error");
+    const togglePwBtn    = document.getElementById("toggle-pw-btn");
+    const iconEye        = document.getElementById("icon-eye");
+    const iconEyeOff     = document.getElementById("icon-eye-off");
+
+    /* ============================================================
+       SHOW / HIDE PASSWORD TOGGLE
+    ============================================================ */
+    togglePwBtn.addEventListener("click", function () {
+      const isHidden = passwordInput.type === "password";
+
+      // Switch the input type
+      passwordInput.type = isHidden ? "text" : "password";
+
+      // Swap icons
+      iconEye.style.display    = isHidden ? "none"  : "block";
+      iconEyeOff.style.display = isHidden ? "block" : "none";
+
+      // Update aria-label for accessibility
+      togglePwBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+    });
+
+    /* ============================================================
+       HELPER — show / clear a field-level error
+    ============================================================ */
+    function setFieldError(input, errorEl, message) {
+      if (message) {
+        errorEl.textContent = message;
+        errorEl.style.display = "block";
+        input.classList.add("invalid");
+      } else {
+        errorEl.textContent = "";
+        errorEl.style.display = "none";
+        input.classList.remove("invalid");
+      }
+    }
+
+    /* ============================================================
+       HELPER — basic email format check
+    ============================================================ */
+    function looksLikeEmail(value) {
+      // Simple regex: something @ something . something
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    /* ============================================================
+       VALIDATION — returns true only when all fields are valid
+    ============================================================ */
+    function validate() {
+      let valid = true;
+      const user = usernameInput.value.trim();
+      const pass = passwordInput.value;
+
+      // --- Username checks ---
+      if (user === "") {
+        setFieldError(usernameInput, usernameError, "Please enter your email or username.");
+        valid = false;
+      } else if (user.includes("@") && !looksLikeEmail(user)) {
+        // Only validate as email if it contains "@"
+        setFieldError(usernameInput, usernameError, "That doesn't look like a valid email address.");
+        valid = false;
+      } else {
+        setFieldError(usernameInput, usernameError, ""); // clear error
+      }
+
+      // --- Password checks ---
+      if (pass === "") {
+        setFieldError(passwordInput, passwordError, "Please enter your password.");
+        valid = false;
+      } else {
+        setFieldError(passwordInput, passwordError, ""); // clear error
+      }
+
+      return valid;
+    }
+
+    /* ============================================================
+       LOGIN HANDLER
+    ============================================================ */
+    function handleLogin() {
+      // Clear any previous login-level error banner
+      loginError.style.display = "none";
+
+      // Run field validation first
+      if (!validate()) return;  // stop if any field is invalid
+
+      const user = usernameInput.value.trim();
+      const pass = passwordInput.value;
+
+      // ── Credential check ──────────────────────────────────────
+      if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
+
+        // ✅ Credentials match — redirect the user
+        loginBtn.textContent = "Signing in…";
+        loginBtn.disabled = true;
+
+        // Small delay so the button state is visible, then redirect
+        setTimeout(function () {
+          window.location.href = REDIRECT_URL;   // 🔀 Redirect happens here
+        }, 600);
+
+      } else {
+
+        // ❌ Credentials don't match — show error banner, no page reload
+        loginError.textContent = "Incorrect username or password. Please try again.";
+        loginError.style.display = "block";
+
+        // Re-trigger shake animation by removing and re-adding the element
+        loginError.style.animation = "none";
+        // Force browser reflow so the animation restarts cleanly
+        void loginError.offsetWidth;
+        loginError.style.animation = "";
+
+        // Clear the password field for security, keep username
+        passwordInput.value = "";
+        passwordInput.focus();
+      }
+    }
+
+    /* ============================================================
+       EVENT LISTENERS
+    ============================================================ */
+
+    // Click the Sign In button
+    loginBtn.addEventListener("click", handleLogin);
+
+    // Press Enter in either field to submit
+    usernameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") handleLogin();
+    });
+    passwordInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") handleLogin();
+    });
+
+    // Clear field errors as the user types (nice UX touch)
+    usernameInput.addEventListener("input", function () {
+      setFieldError(usernameInput, usernameError, "");
+    });
+    passwordInput.addEventListener("input", function () {
+      setFieldError(passwordInput, passwordError, "");
+    });
+
+  </script>
 </body>
-</html> 
+</html>
